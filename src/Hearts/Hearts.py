@@ -87,7 +87,8 @@ class Hearts:
         
         self.event = 'PassCards'
         self.event_data_for_server = {'now_player_index': 0}
-        self.event_data_for_client = {'playerName': self.players[0].name, 'hand': self.handsToStrList(sum(self.players[0].hand.hand, []))}
+        now_player_index = self.event_data_for_server['now_player_index']
+        self.event_data_for_client = {'event_name': self.event, 'broadcast': False, 'data': {'playerName': self.players[now_player_index].name, 'hand': self.handsToStrList(sum(self.players[now_player_index].hand.hand, []))}}
 
     def getFirstTrickStarter(self):
         for i, p in enumerate(self.players):
@@ -111,21 +112,23 @@ class Hearts:
         print (self.currentTrick.suit)
 
     def passCards(self, index, action_data):
-        print (action_data['event_data']['passCards'])
+        print (action_data['passCards'])
         passTo = self.passes[self.trickNum]  # how far to pass cards
         passTo = (index + passTo) % len(self.players)  # the index to which cards are passed
         
-        passCard = self.players[index].play(action_data['event_data']['passCards'][0])
-        self.passingCards[passTo].append(passCard)
-        self.players[index].removeCard(passCard)
-        passCard = self.players[index].play(action_data['event_data']['passCards'][1])
-        self.passingCards[passTo].append(passCard)
-        self.players[index].removeCard(passCard)
-        passCard = self.players[index].play(action_data['event_data']['passCards'][2])
-        self.passingCards[passTo].append(passCard)
-        self.players[index].removeCard(passCard)
+        passCard1 = self.players[index].play(action_data['passCards'][0])
+        passCard2 = self.players[index].play(action_data['passCards'][1])
+        passCard3 = self.players[index].play(action_data['passCards'][2])
+        if passCard1 is not None and passCard2 is not None and passCard3 is not None:        
+            self.passingCards[passTo].append(passCard1)
+            self.players[index].removeCard(passCard1)
+            self.passingCards[passTo].append(passCard2)
+            self.players[index].removeCard(passCard2)
+            self.passingCards[passTo].append(passCard3)
+            self.players[index].removeCard(passCard3)       
+            return True
         
-        print('now ', self.players[index].name, 'cards: ', self.players[index].hand)
+        return False
         
     def distributePassedCards(self):
         for i, passed in enumerate(self.passingCards):
@@ -138,10 +141,10 @@ class Hearts:
 
         self.printPlayers()
         if not self.trickNum % 4 == 3:  # don't pass every fourth hand
-            current_player_i = self.event_data_for_server['now_player_index']
             print  # spacing
             self.printPlayer(current_player_i)
-            self.passCards(current_player_i % len(self.players), action_data)
+            if self.passCards(current_player_i % len(self.players), action_data) == True:
+                self.event_data_for_server['now_player_index'] += 1
             
             if self.event_data_for_server['now_player_index'] == 4:
                 self.distributePassedCards()
@@ -258,46 +261,75 @@ class Hearts:
         return winner
     
     def render(self):
-        pass
-        #print("TODO render")
-        #event = {'event_name': 'switch cards', 'playerName': 'Kazuma'}
+        if self.event == 'show_event':
+            pass
     
-    def step(self,action_data):
-        observation, reward, done, info = None, None, None, None
-        
-        if action_data == None:
-            observation = {'event_name': self.event, 'event_data': self.event_data_for_client}
-            return observation, reward, done, info
+    def request_action(self):
+        observation, info = None, None
         
         if self.event == 'PassCards':
+            now_player_index = self.event_data_for_server['now_player_index']
+            self.event_data_for_client = {'event_name': self.event, 'broadcast': False, 'data': {'playerName': self.players[now_player_index].name, 'hand': self.handsToStrList(sum(self.players[now_player_index].hand.hand, []))}}
+            observation = self.event_data_for_client
+            return observation, info
+        elif self.event == 'showFinalHand':
+            if self.event_data_for_server['now_player_index'] < 4:
+                now_player_index = self.event_data_for_server['now_player_index']
+                self.event_data_for_client = {'event_name': self.event, 'broadcast': False, 'data': {'playerName': self.players[now_player_index].name, 'hand': self.handsToStrList(sum(self.players[now_player_index].hand.hand, []))}}
+                self.event_data_for_server['now_player_index'] += 1
+                observation = self.event_data_for_client
+            else:
+                self.event_data_for_server = {}
+                self.getFirstTrickStarter()
+
+                self.event = 'playTrick'
+                startPlayer = self.players[self.trickWinner]
+                addCard = startPlayer.play(option = "play", c = '2c')
+                startPlayer.removeCard(addCard)
+                self.currentTrick.addCard(addCard, self.trickWinner)
+                self.event_data_for_server['shift'] = 1  # alert game that first player has already played
+                
+                self.printCurrentTrick()
+                
+                current_player_i = self.trickWinner + self.event_data_for_server['shift']
+                self.event_data_for_client = {'event_name': self.event, 'broadcast': False, 'data': {'playerName': self.players[current_player_i].name, 'hand': self.handsToStrList(sum(self.players[current_player_i].hand.hand, []))}}
+                observation = self.event_data_for_client
+
+            return observation, info
+            
+        
+        
+    def step(self, data):
+        observation, reward, done, info = None, None, None, None
+                
+        if self.event == 'PassCards':
             for current_player_i in range(len(self.players)):
-                if self.players[current_player_i].name == action_data['event_data']['playerName']:
-                    IsAllFinished = self.playersPassCards(current_player_i, action_data)
+                if self.players[current_player_i].name == data['data']['playerName']:
+                    IsAllFinished = self.playersPassCards(current_player_i, data['data']['action'])
                     if IsAllFinished:
-                        self.event = 'getFirstTrickStarter'
+                        self.event = 'showFinalHand'
+                        self.event_data_for_server = {}
+                        self.event_data_for_server['now_player_index'] = 0
                     break
                 
-        elif self.event == 'getFirstTrickStarter':
-            IsAllFinished = hearts.getFirstTrickStarter()
-            if IsAllFinished:
-                self.event = 'playTrick'
-                
         elif self.event == 'playTrick':
-            IsAllFinished = hearts.playTrick(hearts.trickWinner)
+            IsAllFinished = self.playTrick(self.trickWinner)
             if IsAllFinished:
+                self.event_data_for_server = {}
                 self.event = 'handleScoring'        
         
         elif self.event == 'handleScoring':
-            IsAllFinished = hearts.handleScoring()
+            IsAllFinished = self.handleScoring()
             if IsAllFinished:
+                self.event_data_for_server = {}
                 self.event = 'newRound'
                 
         elif self.event == 'newRound':
-            IsAllFinished = hearts.newRound()
+            IsAllFinished = self.newRound()
             if IsAllFinished:
-                if hearts.losingPlayer is None or hearts.losingPlayer.score < self.maxScore:
+                if hearts.losingPlayer is None or self.losingPlayer.score < self.maxScore:
                     print ("over")
-                    print (hearts.getWinner().name, "wins!")                    
+                    print (self.getWinner().name, "wins!")                    
                                            
         return observation, reward, done, info
     

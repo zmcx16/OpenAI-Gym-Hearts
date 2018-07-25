@@ -77,7 +77,9 @@ class Hand:
             pass
 
         # convert rank to int
-        if cardRank == "J":
+        if cardRank == "T":
+            cardRank = 10
+        elif cardRank == "J":
             cardRank = 11
         elif cardRank == "Q":
             cardRank = 12
