@@ -92,11 +92,7 @@
             {'playerName': 'Kazuma'
             ,'card': '3c'},
             {'playerName': 'Aqua'
-            ,'card': None},
-            {'playerName': 'Megumin'
-            ,'card': None},
-            {'playerName': 'Darkness'
-            ,'card': None}
+            ,'card': '5c'}
 		]		
     }
 
