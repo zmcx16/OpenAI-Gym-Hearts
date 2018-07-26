@@ -44,7 +44,7 @@
 ```
 {
     "event_name" : "PassCards",
-    "broadcast" : Fasle,
+    "broadcast" : False,
     "RequestAction" : True,
     "data" : {
         'playerName': 'Kazuma', 
@@ -81,14 +81,23 @@
 ```
 {
     "event_name" : "PlayTrick",
-    "broadcast" : Fasle,
+    "broadcast" : False,
     "RequestAction" : True,
     "data" : {
         'playerName': 'Kazuma', 
         'hand': ['ac', ...],
         'trickNum': 3,
-        'trickSuit': 'c',               //first player this value = None
-        'currentTrick': ['5c', '3c']    //first player this value is []
+        'trickSuit': 'c',               //first player this value = "Unset"
+        'currentTrick': [
+            {'playerName': 'Kazuma'
+            ,'card': '3c'},
+            {'playerName': 'Aqua'
+            ,'card': None},
+            {'playerName': 'Megumin'
+            ,'card': None},
+            {'playerName': 'Darkness'
+            ,'card': None}
+		]		
     }
 
 }
@@ -124,7 +133,16 @@
         ],
         'trickNum': 3,
         'trickSuit': 'c',
-        'currentTrick': ['5c', '3c'],
+        'currentTrick': [
+            {'playerName': 'Kazuma'
+            ,'card': '3c'},
+            {'playerName': 'Aqua'
+            ,'card': None},
+            {'playerName': 'Megumin'
+            ,'card': None},
+            {'playerName': 'Darkness'
+            ,'card': None}
+		],
         'IsHeartsBroken': False
     }
 }

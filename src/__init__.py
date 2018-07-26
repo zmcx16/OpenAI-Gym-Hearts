@@ -13,42 +13,25 @@ agent_list.append(human.Human('Darkness'))
 
 env = Hearts([agent_list[0].name, agent_list[1].name, agent_list[2].name, agent_list[3].name], maxScore=100)
 
-
-env.render()
-
-terminal = False
-while not terminal:
-
-    observation, info = env.request_action()
+for i_episode in range(1):
     
-    now_event = observation['event_name']
-    IsBroadcast = observation['broadcast']
+    observation = env.reset()
     
-    if IsBroadcast == True:
-        for agent in agent_list:
-            agent.Do_Action(observation)
-    else:
-        playName = observation['data']['playerName']
-        for agent in agent_list:
-            if agent.name == playName:
-                action = agent.Do_Action(observation)    
-                env.step({'event_name': now_event, 'data': {'playerName': playName, 'action': action}})
+    terminal = False
+    while not terminal:
+
+        now_event = observation['event_name']
+        IsBroadcast = observation['broadcast']
+        action = None
+        if IsBroadcast == True:
+            for agent in agent_list:
+                agent.Do_Action(observation)
+        else:
+            playName = observation['data']['playerName']
+            for agent in agent_list:
+                if agent.name == playName:
+                    action = agent.Do_Action(observation)    
+           
+        observation, reward, done, info = env.step(action) 
     
-    """
-    now_event = observation['event_name']
-    now_hands = observation['event_data']['hand']
-    print("ddd")
-    print(now_hands)
-    #env.step({'event_name': now_event, 'event_data': {'playerName': 'Kazuma', 'passCards': [now_hands[0],now_hands[1],now_hands[2]]}})
-    """
 
-"""
-env.render()
-
-terminal = False
-while not terminal:
-  # play safe actions, check when noone else has raised, call when raised.
-  actions = holdem.safe_actions(community_infos, n_seats=n_seats)
-  (player_states, (community_infos, community_cards)), rews, terminal, info = env.step(actions)
-  env.render(mode='human')
-"""
