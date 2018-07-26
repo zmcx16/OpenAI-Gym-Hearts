@@ -2,6 +2,7 @@
 
 # API
 * GameStart
+```
 {
     "event_name" : "GameStart",
     "broadcast" : True,
@@ -16,8 +17,10 @@
     }
 
 }
+```
 
 * NewRound
+```
 {
     "event_name" : "NewRound",
     "broadcast" : True,
@@ -35,9 +38,10 @@
         ]
     }
 }
-
+```
 
 * PassCards
+```
 {
     "event_name" : "PassCards",
     "broadcast" : Fasle,
@@ -47,8 +51,10 @@
         'hand': ['ac', ...]
     }
 }
+```
 
 * PassCards_Action
+```
 {
     "event_name" : "PassCards_Action",
     "data" : {
@@ -56,8 +62,10 @@
         'action': {'passCards': ['ac','kd','4s']}
     }
 }
+```
 
 * ShowPlayerHand
+```
 {
     "event_name" : "ShowPlayerHand",
     "broadcast" : Fasle,
@@ -67,9 +75,10 @@
         'hand': ['ac', ...]
     }
 }
-
+```
 
 * PlayTrick
+```
 {
     "event_name" : "PlayTrick",
     "broadcast" : Fasle,
@@ -83,8 +92,10 @@
     }
 
 }
+```
 
 * PlayTrick_Action
+```
 {
     "event_name" : "PlayTrick_Action",
     "data" : {
@@ -92,9 +103,10 @@
         'action': {'card': '3c'}
     }
 }
-
+```
 
 * ShowTrickAction
+```
 {
     "event_name" : "ShowTrickAction",
     "broadcast" : True,
@@ -115,11 +127,11 @@
         'currentTrick': ['5c', '3c'],
         'IsHeartsBroken': False
     }
-
 }
-
+```
 
 * ShowTrickEnd
+```
 {
     "event_name" : "ShowTrickEnd",
     "broadcast" : True,
@@ -130,9 +142,10 @@
         'cards': ['4c','7c','9c','Tc']
     }
 }
-
+```
 
 * RoundEnd
+```
 {
     "event_name" : "RoundEnd",
     "broadcast" : True,
@@ -151,9 +164,10 @@
         'trickNum': 3
     }
 }
-
+```
 
 * GameOver
+```
 {
     "event_name" : "GameOver",
     "broadcast" : True,
@@ -173,3 +187,6 @@
         'Winner': 'Kazuma'
     }
 }
+```
+
+# Reference
