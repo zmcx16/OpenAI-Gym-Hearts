@@ -93,7 +93,8 @@
             ,'card': '3c'},
             {'playerName': 'Aqua'
             ,'card': '5c'}
-		]		
+		],
+		'IsHeartsBroken': False
     }
 
 }
@@ -117,16 +118,6 @@
     "broadcast" : True,
     "RequestAction" : False,
     "data" : {
-        "players" : [
-            {'playerName': 'Kazuma'
-            ,'card': None},
-            {'playerName': 'Aqua'
-            ,'card': '4c'},
-            {'playerName': 'Megumin'
-            ,'card': None},
-            {'playerName': 'Darkness'
-            ,'card': None}
-        ],
         'trickNum': 3,
         'trickSuit': 'c',
         'currentTrick': [
@@ -153,7 +144,8 @@
     "data" : {
         'trickNum': 3,
         'trickWinner': 'Aqua',
-        'cards': ['4c','7c','9c','Tc']
+        'cards': ['4c','7c','9c','Tc'],
+		'IsHeartsBroken': False
     }
 }
 ```
@@ -175,7 +167,7 @@
             {'playerName': 'Darkness'
             ,'score': 0}
         ],
-        'trickNum': 3
+        'Round': 3
     }
 }
 ```

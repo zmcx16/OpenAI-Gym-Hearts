@@ -51,7 +51,7 @@ class Hearts:
         '''
         
         self.event = None
-        
+        self.round = 0
 
     def handleScoring(self):
         p, highestScore = None, 0
@@ -267,7 +267,6 @@ class Hearts:
         self.event_data_for_client \
         = {'event_name': self.event
            , 'broadcast': True
-           , 'RequestAction': False
            , 'data': {
                "players" : [
                    {'playerName': self.players[0].name},
@@ -277,6 +276,8 @@ class Hearts:
                    ]
                }
            }
+        
+        self.round = 0
     
     def _event_NewRound(self):
 
@@ -290,13 +291,13 @@ class Hearts:
         self.dealCards()
         self.currentTrick = Trick()
         self.passingCards = [[], [], [], []]
+        self.round += 1
         for p in self.players:
             p.discardTricks()
 
         self.event_data_for_client \
         = {'event_name': self.event
            , 'broadcast': True
-           , 'RequestAction': False
            , 'data': {
                "players" : [
                    {'playerName': self.players[0].name,
@@ -309,61 +310,56 @@ class Hearts:
                     'score': self.players[3].score}
                    ]
                }
-           }               
-
-    def _event_PassCards(self):
+           }
         
-        now_player_index = self.event_data_for_server['now_player_index']
-        self.event_data_for_client \
-        =   {"event_name" : self.event,
-             "broadcast" : False,
-             "RequestAction" : True,
-             "data" : {
-                 'playerName': self.players[now_player_index].name, 
-                 'hand': self.handsToStrList(sum(self.players[now_player_index].hand.hand, []))
-                }
-            }
+        self.event = 'PassCards'
+        self.event_data_for_server = {'now_player_index': 0}          
+
+    def _event_PassCards(self, action_data):
+
+        IsAllFinished = False           
+        if action_data != None and action_data['event_name'] == "PassCards_Action":
+            for current_player_i in range(len(self.players)):
+                if self.players[current_player_i].name == action_data['data']['playerName']:
+                    IsAllFinished = self.playersPassCards(current_player_i, action_data['data']['action'])                           
+                    break
+        
+        if not IsAllFinished:
+            now_player_index = self.event_data_for_server['now_player_index']
+            self.event_data_for_client \
+            =   {"event_name" : self.event,
+                 "broadcast" : False,
+                 "data" : {
+                     'playerName': self.players[now_player_index].name, 
+                     'hand': self.handsToStrList(sum(self.players[now_player_index].hand.hand, []))
+                    }
+                } 
+        else:
+            self.event = 'ShowPlayerHand'
+            self.event_data_for_server = {'now_player_index': 0}
+            self._event_ShowPlayerHand() 
     
     def _event_ShowPlayerHand(self):
+
+        if self.event_data_for_server['now_player_index'] < 4:
+            now_player_index = self.event_data_for_server['now_player_index']
+            self.event_data_for_client \
+            =   {"event_name" : self.event,
+                 "broadcast" : False,
+                 "data" : {
+                     'playerName': self.players[now_player_index].name, 
+                     'hand': self.handsToStrList(sum(self.players[now_player_index].hand.hand, []))
+                    }
+                }        
+            self.event_data_for_server['now_player_index'] += 1
         
-        now_player_index = self.event_data_for_server['now_player_index']
-        self.event_data_for_client \
-        =   {"event_name" : self.event,
-             "broadcast" : False,
-             "RequestAction" : False,
-             "data" : {
-                 'playerName': self.players[now_player_index].name, 
-                 'hand': self.handsToStrList(sum(self.players[now_player_index].hand.hand, []))
-                }
-            }        
-        self.event_data_for_server['now_player_index'] += 1
-    
-    """
-    def _event_FirstPlayTrick(self):
-        
-        self.getFirstTrickStarter()
-        startPlayer = self.players[self.trickWinner]
-        addCard = startPlayer.play(option = "play", c = '2c')
-        startPlayer.removeCard(addCard)
-        self.currentTrick.addCard(addCard, self.trickWinner)
-        self.event_data_for_server['shift'] = 1  # alert game that first player has already played
-        
-        current_player_i = self.trickWinner + self.event_data_for_server['shift']
-        self.event_data_for_client = {'event_name': self.event, 'broadcast': False, 'data': {'playerName': self.players[current_player_i].name, 'hand': self.handsToStrList(sum(self.players[current_player_i].hand.hand, []))}}
-        
-        self.event_data_for_client \
-        =   {"event_name" : self.event,
-             "broadcast" : False,
-             "RequestAction" : False,
-             "data" : {
-                 'playerName': self.players[now_player_index].name, 
-                 'hand': self.handsToStrList(sum(self.players[now_player_index].hand.hand, []))
-                }
-            }                        
-    """
+        else:
+            self.event = 'PlayTrick'
+            self.event_data_for_server = {'shift': 0}
+            self._event_PlayTrick()
     
     def _event_PlayTrick(self):
-        
+                
         shift = self.event_data_for_server['shift']
         if self.trickNum == 0 and shift == 0:  
             self.getFirstTrickStarter()
@@ -376,15 +372,15 @@ class Hearts:
         self.event_data_for_client \
         =   { "event_name" : self.event,
                 "broadcast" : False,
-                "RequestAction" : False,
                 "data" : {
                     'playerName': current_player.name, 
                     'hand': self.handsToStrList(sum(current_player.hand.hand, [])),
                     'trickNum': self.trickNum,
                     'trickSuit': self.currentTrick.suit.__str__(),
-                    'currentTrick': self.getCurrentTrickStrList()
-                    }
+                    'currentTrick': self.getCurrentTrickStrList(),
+                    'IsHeartsBroken': self.heartsBroken
                 }
+            }
 
     def _event_PlayTrick_Action(self, action_data):
         
@@ -397,71 +393,192 @@ class Hearts:
                 current_player.removeCard(addCard)
                 self.currentTrick.addCard(addCard, self.trickWinner)
                 self.event_data_for_server['shift'] += 1
+                
+                self.event = 'ShowTrickAction'
+                self._event_ShowTrickAction()
+            else:
+                self.event = 'PlayTrick'
                 self._event_PlayTrick()
+        else:
+            
+            addCard = current_player.play(option = "play", c = action_data['data']['action']['card'])
+            if addCard is not None:
+                # if it is not the first trick and no cards have been played,
+                # set the first card played as the trick suit if it is not a heart
+                # or if hearts have been broken
+                if self.trickNum != 0 and self.currentTrick.cardsInTrick == 0:
+                    if addCard.suit == Suit(hearts) and not self.heartsBroken:
+                        # if player only has hearts but hearts have not been broken,
+                        # player can play hearts
+                        if not current_player.hasOnlyHearts():
+                            print (current_player.hasOnlyHearts())
+                            print (current_player.hand.__str__())
+                            print ("Hearts have not been broken.")
+                            addCard = None
+                        else:
+                            self.currentTrick.setTrickSuit(addCard)
+                    else:
+                        self.currentTrick.setTrickSuit(addCard)
+
+                # player tries to play off suit but has trick suit
+                if addCard is not None and addCard.suit != self.currentTrick.suit:
+                    if current_player.hasSuit(self.currentTrick.suit):
+                        print ("Must play the suit of the current trick.")
+                        addCard = None
+                    elif addCard.suit == Suit(hearts):
+                        self.heartsBroken = True
+
+                if self.trickNum == 0:
+                    if addCard is not None:
+                        if addCard.suit == Suit(hearts):
+                            print ("Hearts cannot be broken on the first hand.")
+                            self.heartsBroken = False
+                            addCard = None
+                        elif addCard.suit == Suit(spades) and addCard.rank == Rank(queen):
+                            print ("The queen of spades cannot be played on the first hand.")
+                            addCard = None
+
+                if addCard is not None and self.currentTrick.suit == Suit(noSuit):
+                    if addCard.suit == Suit(hearts) and not self.heartsBroken:
+                        print ("Hearts not yet broken.")
+                        addCard = None
+
+                if addCard is not None:
+                    if addCard == Card(queen, spades):
+                        self.heartsBroken = True
+                    current_player.removeCard(addCard)
+                    self.currentTrick.addCard(addCard, current_player_i)
+                    self.event = 'ShowTrickAction'
+                    self._event_ShowTrickAction()
+                else:
+                    self.event = 'PlayTrick'
+                    self._event_PlayTrick()
+                  
+            
+    def _event_ShowTrickAction(self):
+        
+        self.event_data_for_client \
+        =   { "event_name" : self.event,
+                "broadcast" : True,
+                "data" : {
+                    'trickNum': self.trickNum,
+                    'trickSuit': self.currentTrick.suit.__str__(),
+                    'currentTrick': self.getCurrentTrickStrList(),
+                    'IsHeartsBroken': self.heartsBroken
+                }
+            }
+        
+        if self.currentTrick.cardsInTrick < 4:
+            self.event = 'PlayTrick'
+        else:
+            self.event = 'ShowTrickEnd'
+    
+    def _event_ShowTrickEnd(self):
+            
+        self.event_data_for_client \
+        =   { "event_name" : self.event,
+                "broadcast" : True,
+                "data" : {
+                    'trickNum': self.trickNum,
+                    'trickWinner': 'Aqua',
+                    'cards': ['4c','7c','9c','Tc'],
+                    'IsHeartsBroken': False
+                }
+            }
+        
+        self.evaluateTrick()
+        self.trickNum += 1
+        
+        if self.trickNum <= 13:
+            self.event = 'PlayTrick'
+            self.event_data_for_server = {'shift': 0, 'IsHeartsBroken': self.heartsBroken}
+        else:
+            self.event = 'RoundEnd'
+            self.event_data_for_server = {}
+    
+    def _event_RoundEnd(self):
+
+        self.handleScoring()
+
+        self.event_data_for_client \
+        =   { "event_name" : self.event,
+                "broadcast" : True,
+                "data" : {
+                    "players" : [
+                       {'playerName': self.players[0].name,
+                        'score': self.players[0].score},
+                       {'playerName': self.players[1].name,
+                        'score': self.players[1].score},
+                       {'playerName': self.players[2].name,
+                        'score': self.players[2].score},
+                       {'playerName': self.players[3].name,
+                        'score': self.players[3].score}
+                       ],
+                    'Round': self.round,
+                }
+            }
+               
+        # new round if no one has lost
+        if self.losingPlayer.score < self.maxScore:
+            self.event = 'NewRound'
+            self.event_data_for_server = {}
+        else:
+            self.event = 'GameOver'
+            self.event_data_for_server = {}
+
+    def _event_GameOver(self):
+        
+        winner = min(self.players, key=lambda x:x['score'])
+        
+        self.event_data_for_client \
+        =   { "event_name" : self.event,
+                "broadcast" : True,
+                "data" : {
+                    "players" : [
+                        {'playerName': self.players[0].name,
+                         'score': self.players[0].score},
+                        {'playerName': self.players[1].name,
+                         'score': self.players[1].score},
+                        {'playerName': self.players[2].name,
+                         'score': self.players[2].score},
+                        {'playerName': self.players[3].name,
+                         'score': self.players[3].score}
+                        ],
+                    'Round': self.round,
+                    'Winner': winner.name
+                }
+            }
+
     
     def step(self, action_data):
         observation, reward, done, info = None, None, None, None
             
         if self.event == 'NewRound':
             self._event_NewRound()
-            observation = self.event_data_for_client
-            self.event = 'PassCards'
-            self.event_data_for_server = {'now_player_index': 0}
                        
         elif self.event == 'PassCards':
-            IsAllFinished = False           
-            if action_data != None and action_data['event_name'] == "PassCards_Action":
-                for current_player_i in range(len(self.players)):
-                    if self.players[current_player_i].name == action_data['data']['playerName']:
-                        IsAllFinished = self.playersPassCards(current_player_i, action_data['data']['action'])                           
-                        break
-            
-            if not IsAllFinished:
-                self._event_PassCards()
-                observation = self.event_data_for_client  
-            else:
-                self.event = 'ShowPlayerHand'
-                self.event_data_for_server = {'now_player_index': 0}
-                self._event_ShowPlayerHand()
-                observation = self.event_data_for_client      
+            self._event_PassCards()     
                       
         elif self.event == 'ShowPlayerHand':
-            if self.event_data_for_server['now_player_index'] < 4:
-                self._event_ShowPlayerHand()
-                observation = self.event_data_for_client
-            else:
-                self.event = 'PlayTrick'
-                self.event_data_for_server = {'shift': 0}
-                self._event_PlayTrick()
-                observation = self.event_data_for_client
+            self._event_ShowPlayerHand()
 
-        elif self.event == 'PlayTrick':
-            IsAllFinished = False           
+        elif self.event == 'PlayTrick' or self.event == 'ShowTrickAction' or self.event == 'ShowTrickEnd':          
             if action_data != None and action_data['event_name'] == "PlayTrick_Action":
-                IsAllFinished = self._event_PlayTrick_Action(action_data)
-                if not IsAllFinished:
-                    #todo
-                    observation = self.event_data_for_client  
-                else:
-                    #todo
-                    observation = self.event_data_for_client                                    
-      
+                self._event_PlayTrick_Action(action_data)            
+            else:
+                if self.event == 'PlayTrick':
+                    self._event_PlayTrick()
+                elif self.event == 'ShowTrickEnd':                    
+                    self._event_ShowTrickEnd()
         
-        """
-        elif self.event == 'handleScoring':
-            IsAllFinished = self.handleScoring()
-            if IsAllFinished:
-                self.event_data_for_server = {}
-                self.event = 'newRound'
-                
-        elif self.event == 'newRound':
-            IsAllFinished = self.newRound()
-            if IsAllFinished:
-                if hearts.losingPlayer is None or self.losingPlayer.score < self.maxScore:
-                    print ("over")
-                    print (self.getWinner().name, "wins!")                    
-        """
-                                        
+        elif self.event == 'RoundEnd':
+            self._event_RoundEnd()
+            
+        elif self.event == 'GameOver':
+            self._event_GameOver()              
+                                    
+        
+        observation = self.event_data_for_client                              
         return observation, reward, done, info
     
 def run_Heart(playersName, maxScore=100):
