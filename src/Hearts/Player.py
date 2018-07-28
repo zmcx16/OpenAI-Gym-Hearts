@@ -1,36 +1,22 @@
 from .Hand import Hand
 
 class Player:
-    def __init__(self, name, auto=False):
+    def __init__(self, name):
             self.name = name
             self.hand = Hand()
             self.score = 0
             self.tricksWon = []
+            self.CardsInRound = []
 
     def addCard(self, card):
         self.hand.addCard(card)
 
-
-    def getInput(self, action_data):
-        card = None
-        while card is None:
-            card = action_data
-        return card
-
-    def play(self, option='play', c=None, auto=False):
-        if auto:
-            card = self.hand.getRandomCard()
-        elif c is None:
-            card = self.getInput(option)
-        else:
-            card = c
-        if not auto:
-            card = self.hand.playCard(card)
-        return card
+    def play(self, card):
+        return self.hand.playCard(card)
 
 
-    def trickWon(self, trick):
-        self.score += trick.points
+    def trickWon(self, cards):
+        self.CardsInRound += cards
 
 
     def hasSuit(self, suit):
@@ -41,6 +27,9 @@ class Player:
 
     def discardTricks(self):
         self.tricksWon = []
+
+    def resetRoundCards(self):
+        self.CardsInRound = []
 
     def hasOnlyHearts(self):
         return self.hand.hasOnlyHearts()

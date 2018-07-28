@@ -1,19 +1,30 @@
-class Human:
-    def __init__(self, name):
+import random
+from datetime import datetime
+
+class RandomAI:
+    def __init__(self, name, params = None):
+        random.seed(datetime.now())
         self.name = name
+        
+        if params != None:
+            self.print_info = params['print_info']
+        else:
+            self.print_info = False
     
     def Do_Action(self, observation):
         if observation['event_name'] == 'GameStart':
-            print(observation)
+            if self.print_info:
+                print(observation)
         elif observation['event_name'] == 'NewRound':
-            print(observation)
+            if self.print_info:
+                print(observation)
         elif observation['event_name'] == 'PassCards':
-            print(observation)
-            passCards = []
-            for i in range(3):
-                passCards.append(input('{0} pass card{1}: '.format(self.name, i+1)))
+            if self.print_info:
+                print(observation)
             
-            print('passCards: ', passCards)
+            passCards = random.sample(observation['data']['hand'],3)
+                 
+            print(self.name, ' pass cards: ', passCards)
             return {
                     "event_name" : "PassCards_Action",
                     "data" : {
@@ -23,17 +34,20 @@ class Human:
                 }
         
         elif observation['event_name'] == 'ShowPlayerHand':
-            print(observation)
+            if self.print_info:
+                print(observation)
         
         elif observation['event_name'] == 'PlayTrick':
-            print(observation)
+            if self.print_info:
+                print(observation)
             
             hand = observation['data']['hand']
             if '2c' in hand:
                 choose_card = '2c'
             else:
-                choose_card = input('choose card: ')
-            
+                choose_card = random.choice(observation['data']['hand'])
+                print(self.name, ' choose card: ', choose_card)
+
             return {
                     "event_name" : "PlayTrick_Action",
                     "data" : {
@@ -42,10 +56,14 @@ class Human:
                     }
                 }            
         elif observation['event_name'] == 'ShowTrickAction':
-            print(observation)
+            if self.print_info:
+                print(observation)
         elif observation['event_name'] == 'ShowTrickEnd':
-            print(observation)
+            if self.print_info:
+                print(observation)
         elif observation['event_name'] == 'RoundEnd':
-            print(observation)
+            if self.print_info:
+                print(observation)
         elif observation['event_name'] == 'GameOver':
-            print(observation)            
+            if self.print_info:
+                print(observation)            

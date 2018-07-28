@@ -33,7 +33,6 @@ class Hearts:
         self.currentTrick = Trick()
         self.trickWinner = -1
         self.heartsBroken = False
-        self.losingPlayer = None
         self.passingCards = [[], [], [], []]
 
         # Make four players
@@ -54,14 +53,26 @@ class Hearts:
         self.round = 0
 
     def handleScoring(self):
-        p, highestScore = None, 0
-        print ("\nScores:\n")
-        for player in self.players:
-            print (player.name + ": " + str(player.score))
-            if player.score > highestScore:
-                p = player
-                highestScore = player.score
-            self.losingPlayer = p
+              
+        temp_score_list = [0, 0, 0, 0] 
+        for current_player_i in range(len(self.players)):     
+            heart_num = 0
+            queen_spades = False   
+            for card in self.players[current_player_i].CardsInRound:        
+                if card.suit == Suit(hearts):
+                    heart_num += 1
+                elif card == Card(queen, spades):
+                    queen_spades = True
+            
+            if heart_num == 13 and queen_spades == True:
+                temp_score_list = [26,26,26,26]
+                temp_score_list[current_player_i] = 0                
+                break;
+            else:
+                temp_score_list[current_player_i] = heart_num + queen_spades*13
+        
+        for current_player_i in range(len(self.players)):
+            self.players[current_player_i].score += temp_score_list[current_player_i]
     
     def handsToStrList(self, hands):
         output = []
@@ -83,15 +94,12 @@ class Hearts:
     def evaluateTrick(self):
         self.trickWinner = self.currentTrick.winner
         p = self.players[self.trickWinner]
-        p.trickWon(self.currentTrick)
-        self.printCurrentTrick()
-        print (p.name + " won the trick.")
-        # print 'Making new trick'
-        self.currentTrick = Trick()
-        print (self.currentTrick.suit)
+        p.trickWon(self.currentTrick.trick)
+        #self.printCurrentTrick()
+        #print (p.name + " won the trick.")
 
     def passCards(self, index, action_data):
-        print (action_data['passCards'])
+        #print (action_data['passCards'])
         passTo = self.passes[self.trickNum]  # how far to pass cards
         passTo = (index + passTo) % len(self.players)  # the index to which cards are passed
         
@@ -120,7 +128,7 @@ class Hearts:
 
         self.printPlayers()
         if not self.trickNum % 4 == 3:  # don't pass every fourth hand
-            print  # spacing
+
             self.printPlayer(current_player_i)
             if self.passCards(current_player_i % len(self.players), action_data) == True:
                 self.event_data_for_server['now_player_index'] += 1
@@ -132,82 +140,6 @@ class Hearts:
         
         return False
 
-    def playTrick(self, start):
-        shift = 0
-        if self.trickNum == 0:
-            startPlayer = self.players[start]
-            addCard = startPlayer.play(option = "play", c = '2c')
-            startPlayer.removeCard(addCard)
-
-            self.currentTrick.addCard(addCard, start)
-
-            shift = 1  # alert game that first player has already played
-
-        # have each player take their turn
-        for i in range(start + shift, start + len(self.players)):
-            self.printCurrentTrick()
-            curPlayerIndex = i % len(self.players)
-            self.printPlayer(curPlayerIndex)
-            curPlayer = self.players[curPlayerIndex]
-            addCard = None
-
-            while addCard is None:  # wait until a valid card is passed
-
-                addCard = curPlayer.play(auto = auto)  # change auto to False to play manually
-
-                # the rules for what cards can be played
-                # card set to None if it is found to be invalid
-                if addCard is not None:
-
-                    # if it is not the first trick and no cards have been played,
-                    # set the first card played as the trick suit if it is not a heart
-                    # or if hearts have been broken
-                    if self.trickNum != 0 and self.currentTrick.cardsInTrick == 0:
-                        if addCard.suit == Suit(hearts) and not self.heartsBroken:
-                            # if player only has hearts but hearts have not been broken,
-                            # player can play hearts
-                            if not curPlayer.hasOnlyHearts():
-                                print (curPlayer.hasOnlyHearts())
-                                print (curPlayer.hand.__str__())
-                                print ("Hearts have not been broken.")
-                                addCard = None
-                            else:
-                                self.currentTrick.setTrickSuit(addCard)
-                        else:
-                            self.currentTrick.setTrickSuit(addCard)
-
-                    # player tries to play off suit but has trick suit
-                    if addCard is not None and addCard.suit != self.currentTrick.suit:
-                        if curPlayer.hasSuit(self.currentTrick.suit):
-                            print ("Must play the suit of the current trick.")
-                            addCard = None
-                        elif addCard.suit == Suit(hearts):
-                            self.heartsBroken = True
-
-                    if self.trickNum == 0:
-                        if addCard is not None:
-                            if addCard.suit == Suit(hearts):
-                                print ("Hearts cannot be broken on the first hand.")
-                                self.heartsBroken = False
-                                addCard = None
-                            elif addCard.suit == Suit(spades) and addCard.rank == Rank(queen):
-                                print ("The queen of spades cannot be played on the first hand.")
-                                addCard = None
-
-                    if addCard is not None and self.currentTrick.suit == Suit(noSuit):
-                        if addCard.suit == Suit(hearts) and not self.heartsBroken:
-                            print ("Hearts not yet broken.")
-                            addCard = None
-
-                    if addCard is not None:
-                        if addCard == Card(queen, spades):
-                            self.heartsBroken = True
-                        curPlayer.removeCard(addCard)
-
-            self.currentTrick.addCard(addCard, curPlayerIndex)
-
-        self.evaluateTrick()
-        self.trickNum += 1
 
     # print player's hand
     def printPlayer(self, i):
@@ -239,7 +171,7 @@ class Hearts:
         return trick_list
         
     def getWinner(self):
-        minScore = 200  # impossibly high
+        minScore = self.maxScore
         winner = None
         for p in self.players:
             if p.score < minScore:
@@ -293,6 +225,7 @@ class Hearts:
         self.passingCards = [[], [], [], []]
         self.round += 1
         for p in self.players:
+            p.resetRoundCards()
             p.discardTricks()
 
         self.event_data_for_client \
@@ -366,8 +299,8 @@ class Hearts:
             current_player = self.players[self.trickWinner]
             
         else:
-            current_player_i = self.trickWinner + shift
-            current_player = self.players[current_player_i%4] 
+            current_player_i = (self.trickWinner + shift)%4
+            current_player = self.players[current_player_i] 
             
         self.event_data_for_client \
         =   { "event_name" : self.event,
@@ -375,7 +308,7 @@ class Hearts:
                 "data" : {
                     'playerName': current_player.name, 
                     'hand': self.handsToStrList(sum(current_player.hand.hand, [])),
-                    'trickNum': self.trickNum,
+                    'trickNum': self.trickNum+1,
                     'trickSuit': self.currentTrick.suit.__str__(),
                     'currentTrick': self.getCurrentTrickStrList(),
                     'IsHeartsBroken': self.heartsBroken
@@ -385,11 +318,11 @@ class Hearts:
     def _event_PlayTrick_Action(self, action_data):
         
         shift = self.event_data_for_server['shift']
-        current_player_i = self.trickWinner + shift
-        current_player = self.players[current_player_i%4]
+        current_player_i = (self.trickWinner + shift)%4
+        current_player = self.players[current_player_i]
         if self.trickNum == 0 and shift == 0:  
             if action_data['data']['action']['card'] == '2c':
-                addCard = current_player.play(option = "play", c = '2c')
+                addCard = current_player.play('2c')
                 current_player.removeCard(addCard)
                 self.currentTrick.addCard(addCard, self.trickWinner)
                 self.event_data_for_server['shift'] += 1
@@ -401,7 +334,7 @@ class Hearts:
                 self._event_PlayTrick()
         else:
             
-            addCard = current_player.play(option = "play", c = action_data['data']['action']['card'])
+            addCard = current_player.play(action_data['data']['action']['card'])
             if addCard is not None:
                 # if it is not the first trick and no cards have been played,
                 # set the first card played as the trick suit if it is not a heart
@@ -448,6 +381,7 @@ class Hearts:
                         self.heartsBroken = True
                     current_player.removeCard(addCard)
                     self.currentTrick.addCard(addCard, current_player_i)
+                    self.event_data_for_server['shift'] += 1
                     self.event = 'ShowTrickAction'
                     self._event_ShowTrickAction()
                 else:
@@ -461,7 +395,7 @@ class Hearts:
         =   { "event_name" : self.event,
                 "broadcast" : True,
                 "data" : {
-                    'trickNum': self.trickNum,
+                    'trickNum': self.trickNum+1,
                     'trickSuit': self.currentTrick.suit.__str__(),
                     'currentTrick': self.getCurrentTrickStrList(),
                     'IsHeartsBroken': self.heartsBroken
@@ -474,22 +408,28 @@ class Hearts:
             self.event = 'ShowTrickEnd'
     
     def _event_ShowTrickEnd(self):
-            
+        
+        self.evaluateTrick()
+        
+        cards = []
+        for card in self.currentTrick.trick:
+            cards += [str(card)]         
+                 
         self.event_data_for_client \
         =   { "event_name" : self.event,
                 "broadcast" : True,
                 "data" : {
-                    'trickNum': self.trickNum,
-                    'trickWinner': 'Aqua',
-                    'cards': ['4c','7c','9c','Tc'],
-                    'IsHeartsBroken': False
+                    'trickNum': self.trickNum+1,
+                    'trickWinner': self.players[self.trickWinner].name,
+                    'cards': cards,
+                    'IsHeartsBroken': self.heartsBroken
                 }
             }
         
-        self.evaluateTrick()
-        self.trickNum += 1
-        
-        if self.trickNum <= 13:
+        self.currentTrick = Trick()
+             
+        self.trickNum += 1        
+        if self.trickNum < 13:
             self.event = 'PlayTrick'
             self.event_data_for_server = {'shift': 0, 'IsHeartsBroken': self.heartsBroken}
         else:
@@ -517,9 +457,11 @@ class Hearts:
                     'Round': self.round,
                 }
             }
-               
+        
+        
+        temp_loser = max(self.players, key=lambda x:x.score)
         # new round if no one has lost
-        if self.losingPlayer.score < self.maxScore:
+        if temp_loser.score < self.maxScore:
             self.event = 'NewRound'
             self.event_data_for_server = {}
         else:
@@ -528,7 +470,7 @@ class Hearts:
 
     def _event_GameOver(self):
         
-        winner = min(self.players, key=lambda x:x['score'])
+        winner = min(self.players, key=lambda x:x.score)
         
         self.event_data_for_client \
         =   { "event_name" : self.event,
@@ -548,6 +490,8 @@ class Hearts:
                     'Winner': winner.name
                 }
             }
+        
+        self.event = None
 
     
     def step(self, action_data):
@@ -557,7 +501,7 @@ class Hearts:
             self._event_NewRound()
                        
         elif self.event == 'PassCards':
-            self._event_PassCards()     
+            self._event_PassCards(action_data)     
                       
         elif self.event == 'ShowPlayerHand':
             self._event_ShowPlayerHand()
@@ -576,33 +520,10 @@ class Hearts:
             
         elif self.event == 'GameOver':
             self._event_GameOver()              
+        
+        elif self.event == None:
+            self.event_data_for_client = None
                                     
         
         observation = self.event_data_for_client                              
         return observation, reward, done, info
-    
-def run_Heart(playersName, maxScore=100):
-    
-    hearts = Hearts(playersName, maxScore=100)
-
-    # play until someone loses
-    while hearts.losingPlayer is None or hearts.losingPlayer.score < maxScore:
-        while hearts.trickNum < totalTricks:
-            print ("Round", hearts.roundNum)
-            if hearts.trickNum == 0:
-                if not auto:
-                    hearts.playersPassCards()
-                hearts.getFirstTrickStarter()
-            print ('\nPlaying trick number', hearts.trickNum + 1)
-            hearts.playTrick(hearts.trickWinner)
-
-        # tally scores
-        hearts.handleScoring()
-
-        # new round if no one has lost
-        if hearts.losingPlayer.score < maxScore:
-            print ("New round")
-            hearts.newRound()
-
-    print ("")
-    print (hearts.getWinner().name, "wins!")

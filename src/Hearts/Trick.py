@@ -9,7 +9,6 @@ class Trick:
         self.trick = [0, 0, 0, 0]
         self.suit = Suit(-1)
         self.cardsInTrick = 0
-        self.points = 0
         self.highest = 0 # rank of the high trump suit card in hand
         self.winner = -1
 
@@ -17,7 +16,6 @@ class Trick:
         self.trick = [0, 0, 0, 0]
         self.suit = -1
         self.cardsInTrick = 0
-        self.points = 0
         self.highest = 0
         self.winner = -1
 
@@ -38,11 +36,6 @@ class Trick:
         
         self.trick[index] = card
         self.cardsInTrick += 1
-
-        if card.suit == Suit(hearts):
-            self.points += 1
-        elif card == Card(queen, spades):
-            self.points += 13
 
         if card.suit == self.suit:
             if card.rank.rank > self.highest:
