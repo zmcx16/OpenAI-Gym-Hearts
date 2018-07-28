@@ -1,4 +1,33 @@
 # OpenAI_Gym_Hearts_Card_Game
+* The main game logic is fork from https://github.com/danielcorin/Hearts, and modify it to fit OpenAI Gym enviorment.
+
+# Requirement
+```
+pip install gym
+```
+
+# Demo
+```
+python run_example.py
+```
+
+# Support Agent
+* Human
+* Random 
+
+# Scoring
+* Queen card is 1 penalty point, Queen of Spades is 13 penalty points.
+* Shooting the moon: If one player takes all the penalty cards on one deal, that player's score remains unchanged while 26 penalty points are added to the scores of each of the other players.
+
+# Game Flow
+1.	env.reset() -> Start Hearts game, env send the GameStart event to all player.
+2.	env send NewRound event to all player.
+3.	env send PassCards event to each player, the player need choose 3 cards to pass other player and send PassCards_Action event to env.
+4.	After all players send legal PassCards_Action event, env will send ShowPlayerHand event to each player to get the final hand cards.
+5.  env send PlayTrick event to the player, the player choose a card and send PlayTrick_Action event to env.
+6.  env will send ShowTrickAction event to all players to tell them the player's action.
+7.  After all players take a card, env will send ShowTrickEnd event to tell the players that which one win this trick.
+8.  After last trick, env will send RoundEnd event to announce which player win this round, if the loser's score > max_score, env send GameOver event to all players and exit the game, or send NewRound event to all players to continue game.
 
 # API
 * GameStart
@@ -6,7 +35,6 @@
 {
     "event_name" : "GameStart",
     "broadcast" : True,
-    "RequestAction" : False,
     "data" : {
         "players" : [
             {'playerName': 'Kazuma'},
@@ -24,7 +52,6 @@
 {
     "event_name" : "NewRound",
     "broadcast" : True,
-    "RequestAction" : False,
     "data" : {
         "players" : [
             {'playerName': 'Kazuma'
@@ -45,10 +72,9 @@
 {
     "event_name" : "PassCards",
     "broadcast" : False,
-    "RequestAction" : True,
     "data" : {
         'playerName': 'Kazuma', 
-        'hand': ['ac', ...]
+        'hand': ['6c', '2d', '3d', '6d', '7d', 'Jd', 'Qd', '3s', '3h', '6h', 'Qh', 'Kh', 'Ah']
     }
 }
 ```
@@ -59,7 +85,7 @@
     "event_name" : "PassCards_Action",
     "data" : {
         'playerName': 'Kazuma', 
-        'action': {'passCards': ['ac','kd','4s']}
+        'action': {'passCards': ['6c', '2d', '3d']}
     }
 }
 ```
@@ -69,10 +95,9 @@
 {
     "event_name" : "ShowPlayerHand",
     "broadcast" : Fasle,
-    "RequestAction" : False,
     "data" : {
         'playerName': 'Kazuma', 
-        'hand': ['ac', ...]
+        'hand': ['Ac', '6d', '7d', '9d', 'Jd', 'Qd', '3s', '3h', '6h', 'Jh', 'Qh', 'Kh', 'Ah']
     }
 }
 ```
@@ -82,17 +107,16 @@
 {
     "event_name" : "PlayTrick",
     "broadcast" : False,
-    "RequestAction" : True,
     "data" : {
         'playerName': 'Kazuma', 
-        'hand': ['ac', ...],
+        'hand': ['7d', '9d', 'Jd', 'Qd', '3s', '3h', '6h', 'Jh', 'Qh', 'Kh', 'Ah'],
         'trickNum': 3,
-        'trickSuit': 'c',               //first player this value = "Unset"
+        'trickSuit': 's',               //first player this value = "Unset"
         'currentTrick': [
-            {'playerName': 'Kazuma'
-            ,'card': '3c'},
-            {'playerName': 'Aqua'
-            ,'card': '5c'}
+            {'playerName': 'Megumin'
+            ,'card': '9s'},
+            {'playerName': 'Darkness'
+            ,'card': '7s'}
 		],
 		'IsHeartsBroken': False
     }
@@ -106,7 +130,7 @@
     "event_name" : "PlayTrick_Action",
     "data" : {
         'playerName': 'Kazuma', 
-        'action': {'card': '3c'}
+        'action': {'card': '3s'}
     }
 }
 ```
@@ -116,19 +140,16 @@
 {
     "event_name" : "ShowTrickAction",
     "broadcast" : True,
-    "RequestAction" : False,
     "data" : {
         'trickNum': 3,
         'trickSuit': 'c',
         'currentTrick': [
             {'playerName': 'Kazuma'
-            ,'card': '3c'},
-            {'playerName': 'Aqua'
-            ,'card': None},
+            ,'card': '3s'},
             {'playerName': 'Megumin'
-            ,'card': None},
+            ,'card': '9s'},
             {'playerName': 'Darkness'
-            ,'card': None}
+            ,'card': '7s'}
 		],
         'IsHeartsBroken': False
     }
@@ -140,11 +161,10 @@
 {
     "event_name" : "ShowTrickEnd",
     "broadcast" : True,
-    "RequestAction" : False,
     "data" : {
         'trickNum': 3,
-        'trickWinner': 'Aqua',
-        'cards': ['4c','7c','9c','Tc'],
+        'trickWinner': 'Megumin',
+        'cards': ['3s', '2s', '9s', '7s'],
 		'IsHeartsBroken': False
     }
 }
@@ -155,7 +175,6 @@
 {
     "event_name" : "RoundEnd",
     "broadcast" : True,
-    "RequestAction" : False,
     "data" : {
         "players" : [
             {'playerName': 'Kazuma'
@@ -177,7 +196,6 @@
 {
     "event_name" : "GameOver",
     "broadcast" : True,
-    "RequestAction" : False,
     "data" : {
         "players" : [
             {'playerName': 'Kazuma'
@@ -189,10 +207,14 @@
             {'playerName': 'Darkness'
             ,'score': 26}
         ],
-        'trickNum': 7,
+        'Round': 7,
         'Winner': 'Kazuma'
     }
 }
 ```
 
 # Reference
+* https://github.com/danielcorin/Hearts
+
+# License
+This project is licensed under the terms of the MIT license.

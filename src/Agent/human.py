@@ -1,5 +1,5 @@
 class Human:
-    def __init__(self, name):
+    def __init__(self, name, params):
         self.name = name
     
     def Do_Action(self, observation):

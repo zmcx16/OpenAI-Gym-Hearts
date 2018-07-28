@@ -209,6 +209,8 @@ class Hearts:
                }
            }
         
+        for p in self.players:        
+            p.score = 0
         self.round = 0
     
     def _event_NewRound(self):
@@ -467,7 +469,7 @@ class Hearts:
         else:
             self.event = 'GameOver'
             self.event_data_for_server = {}
-
+            
     def _event_GameOver(self):
         
         winner = min(self.players, key=lambda x:x.score)
