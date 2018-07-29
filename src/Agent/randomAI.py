@@ -23,8 +23,10 @@ class RandomAI:
                 print(observation)
             
             passCards = random.sample(observation['data']['hand'],3)
-                 
-            print(self.name, ' pass cards: ', passCards)
+            
+            if self.print_info:
+                print(self.name, ' pass cards: ', passCards)
+                
             return {
                     "event_name" : "PassCards_Action",
                     "data" : {
@@ -46,7 +48,8 @@ class RandomAI:
                 choose_card = '2c'
             else:
                 choose_card = random.choice(observation['data']['hand'])
-                print(self.name, ' choose card: ', choose_card)
+                if self.print_info:
+                    print(self.name, ' choose card: ', choose_card)
 
             return {
                     "event_name" : "PlayTrick_Action",

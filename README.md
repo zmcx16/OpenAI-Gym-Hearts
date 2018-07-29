@@ -186,6 +186,7 @@ python run_example.py
             {'playerName': 'Darkness'
             ,'score': 0}
         ],
+		'ShootingMoon': False,
         'Round': 3
     }
 }
