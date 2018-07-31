@@ -1,4 +1,4 @@
-# OpenAI_Gym_Hearts_Card_Game
+# OpenAI Gym Hearts Card Game
 * Implement an OpenAI Gym Hearts Card Game simulation environment, easy to collect game data to use it in Machine Learning and Reinforcement Learning, the main game logic is fork from https://github.com/danielcorin/Hearts.
 
 # Requirement

@@ -366,6 +366,7 @@ class HeartsEnv(Env):
                             addCard = None
                         else:
                             self.currentTrick.setTrickSuit(addCard)
+                            self.heartsBroken = True
                     else:
                         self.currentTrick.setTrickSuit(addCard)
 
