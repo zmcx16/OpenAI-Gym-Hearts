@@ -402,7 +402,10 @@ class HeartsEnv(Env):
                 else:
                     self.event = 'PlayTrick'
                     self._event_PlayTrick()
-                  
+            
+            else:
+                self.event = 'PlayTrick'
+                self._event_PlayTrick()             
             
     def _event_ShowTrickAction(self):
 
