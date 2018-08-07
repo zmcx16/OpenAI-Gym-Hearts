@@ -16,7 +16,7 @@ valid one.
 totalTricks = 13
 
 queen = 12
-noSuit = 0
+noSuit = -1
 spades = 2
 hearts = 3
 cardsToPass = 3
