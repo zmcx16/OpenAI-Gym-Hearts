@@ -17,7 +17,7 @@ class Human:
             return {
                     "event_name" : "PassCards_Action",
                     "data" : {
-                        'playerName': self.name, 
+                        'playerName': self.name,
                         'action': {'passCards': passCards}
                     }
                 }
@@ -27,7 +27,6 @@ class Human:
         
         elif observation['event_name'] == 'PlayTrick':
             print(observation)
-            
             hand = observation['data']['hand']
             if '2c' in hand:
                 choose_card = '2c'

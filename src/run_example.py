@@ -34,7 +34,7 @@ for i_episode in range(NUM_EPISODES):
     
     while True:
         env.render()
-        
+
         now_event = observation['event_name']
         IsBroadcast = observation['broadcast']
         action = None

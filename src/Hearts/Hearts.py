@@ -270,10 +270,10 @@ class HeartsEnv(Env):
             =   {"event_name" : self.event,
                  "broadcast" : False,
                  "data" : {
-                     'playerName': self.players[now_player_index].name, 
+                     'playerName': self.players[now_player_index].name,
                      'hand': self._handsToStrList(sum(self.players[now_player_index].hand.hand, []))
                     }
-                } 
+                }
             
             if now_player_index == 0:
                 self.renderInfo['printFlag'] = True
@@ -309,7 +309,7 @@ class HeartsEnv(Env):
     def _event_PlayTrick(self):
                 
         shift = self.event_data_for_server['shift']
-        if self.trickNum == 0 and shift == 0:  
+        if self.trickNum == 0 and shift == 0:
             self._getFirstTrickStarter()
             current_player = self.players[self.trickWinner]
             
@@ -585,7 +585,7 @@ class HeartsEnv(Env):
             
         elif self.event == 'GameOver':
             self._event_GameOver()
-        
+
         elif self.event == None:
             self.event_data_for_client = None
             done = True
