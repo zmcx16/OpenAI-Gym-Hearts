@@ -5,13 +5,11 @@ from .Trick import Trick
 
 from gym import Env
 
-'''
-Change auto to False if you would like to play the game manually.
-This allows you to make all passes, and plays for all four players.
-When auto is True, passing is disabled and the computer plays the
-game by "guess and check", randomly trying moves until it finds a
-valid one.
-'''
+'''Change auto to False if you would like to play the game manually.'''
+'''This allows you to make all passes, and plays for all four players.'''
+'''When auto is True, passing is disabled and the computer plays the'''
+'''game by "guess and check", randomly trying moves until it finds a'''
+'''valid one.'''
 
 totalTricks = 13
 
@@ -59,11 +57,11 @@ class HeartsEnv(Env):
 
     def _handleScoring(self):
               
-        temp_score_list = [0, 0, 0, 0] 
-        for current_player_i in range(len(self.players)):     
+        temp_score_list = [0, 0, 0, 0]
+        for current_player_i in range(len(self.players)):
             heart_num = 0
-            queen_spades = False   
-            for card in self.players[current_player_i].CardsInRound:        
+            queen_spades = False
+            for card in self.players[current_player_i].CardsInRound:
                 if card.suit == Suit(hearts):
                     heart_num += 1
                 elif card == Card(queen, spades):
@@ -72,7 +70,7 @@ class HeartsEnv(Env):
             if heart_num == 13 and queen_spades == True:
                 temp_score_list = [26,26,26,26]
                 temp_score_list[current_player_i] = 0
-                self.shootingMoon = True             
+                self.shootingMoon = True
                 break;
             else:
                 temp_score_list[current_player_i] = heart_num + queen_spades*13
@@ -82,6 +80,7 @@ class HeartsEnv(Env):
         
         return temp_score_list
     
+    @classmethod
     def _handsToStrList(self, hands):
         output = []
         for card in hands:
@@ -114,13 +113,13 @@ class HeartsEnv(Env):
         passCard1 = self.players[index].play(action_data['passCards'][0])
         passCard2 = self.players[index].play(action_data['passCards'][1])
         passCard3 = self.players[index].play(action_data['passCards'][2])
-        if passCard1 is not None and passCard2 is not None and passCard3 is not None:        
+        if passCard1 is not None and passCard2 is not None and passCard3 is not None:
             self.passingCards[passTo].append(passCard1)
             self.players[index].removeCard(passCard1)
             self.passingCards[passTo].append(passCard2)
             self.players[index].removeCard(passCard2)
             self.passingCards[passTo].append(passCard3)
-            self.players[index].removeCard(passCard3)       
+            self.players[index].removeCard(passCard3)
             return True
         
         return False
@@ -177,7 +176,7 @@ class HeartsEnv(Env):
         trick_list = []
         for i, card in enumerate(self.currentTrick.trick):
             if self.currentTrick.trick[i] is not 0:
-                trick_list += [{'playerName': self.players[i].name, 'card': str(card) }]    
+                trick_list += [{'playerName': self.players[i].name, 'card': str(card) }]
         
         return trick_list
         
@@ -205,7 +204,7 @@ class HeartsEnv(Env):
                }
            }
         
-        for p in self.players:        
+        for p in self.players:
             p.score = 0
         self.round = 0
     
@@ -249,7 +248,7 @@ class HeartsEnv(Env):
            }
         
         self.event = 'PassCards'
-        self.event_data_for_server = {'now_player_index': 0}          
+        self.event_data_for_server = {'now_player_index': 0}
 
         self.renderInfo['printFlag'] = True
         self.renderInfo['Msg'] = '\n*** Start Round {0} ***\n'.format(self.round)
@@ -258,11 +257,11 @@ class HeartsEnv(Env):
 
     def _event_PassCards(self, action_data):
 
-        IsAllFinished = False           
+        IsAllFinished = False
         if action_data != None and action_data['event_name'] == "PassCards_Action":
             for current_player_i in range(len(self.players)):
                 if self.players[current_player_i].name == action_data['data']['playerName']:
-                    IsAllFinished = self._playersPassCards(current_player_i, action_data['data']['action'])                           
+                    IsAllFinished = self._playersPassCards(current_player_i, action_data['data']['action'])
                     break
         
         if not IsAllFinished:
@@ -283,7 +282,7 @@ class HeartsEnv(Env):
         else:
             self.event = 'ShowPlayerHand'
             self.event_data_for_server = {'now_player_index': 0}
-            self._event_ShowPlayerHand() 
+            self._event_ShowPlayerHand()
             
             self.renderInfo['printFlag'] = True
             self.renderInfo['Msg'] = '\n*** Pass Cards Over ***\n'
@@ -296,10 +295,10 @@ class HeartsEnv(Env):
             =   {"event_name" : self.event,
                  "broadcast" : False,
                  "data" : {
-                     'playerName': self.players[now_player_index].name, 
+                     'playerName': self.players[now_player_index].name,
                      'hand': self._handsToStrList(sum(self.players[now_player_index].hand.hand, []))
                     }
-                }        
+                }
             self.event_data_for_server['now_player_index'] += 1
         
         else:
@@ -316,13 +315,13 @@ class HeartsEnv(Env):
             
         else:
             current_player_i = (self.trickWinner + shift)%4
-            current_player = self.players[current_player_i] 
+            current_player = self.players[current_player_i]
             
         self.event_data_for_client \
         =   { "event_name" : self.event,
                 "broadcast" : False,
                 "data" : {
-                    'playerName': current_player.name, 
+                    'playerName': current_player.name,
                     'hand': self._handsToStrList(sum(current_player.hand.hand, [])),
                     'trickNum': self.trickNum+1,
                     'trickSuit': self.currentTrick.suit.__str__(),
@@ -336,7 +335,7 @@ class HeartsEnv(Env):
         shift = self.event_data_for_server['shift']
         current_player_i = (self.trickWinner + shift)%4
         current_player = self.players[current_player_i]
-        if self.trickNum == 0 and shift == 0:  
+        if self.trickNum == 0 and shift == 0:
             if action_data['data']['action']['card'] == '2c':
                 addCard = current_player.play('2c')
                 current_player.removeCard(addCard)
@@ -405,7 +404,7 @@ class HeartsEnv(Env):
             
             else:
                 self.event = 'PlayTrick'
-                self._event_PlayTrick()             
+                self._event_PlayTrick()
             
     def _event_ShowTrickAction(self):
 
@@ -434,7 +433,7 @@ class HeartsEnv(Env):
         
         cards = []
         for card in self.currentTrick.trick:
-            cards += [str(card)]         
+            cards += [str(card)]
                  
         self.event_data_for_client \
         =   { "event_name" : self.event,
@@ -455,7 +454,7 @@ class HeartsEnv(Env):
         
         self.currentTrick = Trick()
              
-        self.trickNum += 1        
+        self.trickNum += 1
         if self.trickNum < 13:
             self.event = 'PlayTrick'
             self.event_data_for_server = {'shift': 0, 'IsHeartsBroken': self.heartsBroken}
@@ -535,15 +534,15 @@ class HeartsEnv(Env):
         for p in self.players:
             self.renderInfo['Msg'] += '{0}: {1}\n'.format(p.name, p.score)
         
-        self.renderInfo['Msg'] += '\nRound: {0}\n'.format(self.round)       
+        self.renderInfo['Msg'] += '\nRound: {0}\n'.format(self.round)
         self.renderInfo['Msg'] += 'Winner: {0}\n'.format(winner.name)
         
         self.event = None
 
     def reset(self):
         
-        # Generate a full deck of cards and shuffle it     
-        self.event = 'GameStart'        
+        # Generate a full deck of cards and shuffle it
+        self.event = 'GameStart'
         self._event_GameStart()
         observation = self.event_data_for_client
         self.event = 'NewRound'
@@ -567,18 +566,18 @@ class HeartsEnv(Env):
             self._event_NewRound()
                        
         elif self.event == 'PassCards':
-            self._event_PassCards(action_data)     
+            self._event_PassCards(action_data)
                       
         elif self.event == 'ShowPlayerHand':
             self._event_ShowPlayerHand()
 
-        elif self.event == 'PlayTrick' or self.event == 'ShowTrickAction' or self.event == 'ShowTrickEnd':          
+        elif self.event == 'PlayTrick' or self.event == 'ShowTrickAction' or self.event == 'ShowTrickEnd':
             if action_data != None and action_data['event_name'] == "PlayTrick_Action":
-                self._event_PlayTrick_Action(action_data)            
+                self._event_PlayTrick_Action(action_data)
             else:
                 if self.event == 'PlayTrick':
                     self._event_PlayTrick()
-                elif self.event == 'ShowTrickEnd':                    
+                elif self.event == 'ShowTrickEnd':
                     self._event_ShowTrickEnd()
         
         elif self.event == 'RoundEnd':
@@ -590,7 +589,7 @@ class HeartsEnv(Env):
         elif self.event == None:
             self.event_data_for_client = None
             done = True
-                                    
-        
-        observation = self.event_data_for_client                              
+
+
+        observation = self.event_data_for_client
         return observation, reward, done, info

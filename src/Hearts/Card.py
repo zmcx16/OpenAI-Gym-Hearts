@@ -30,15 +30,13 @@ class Card:
     def __str__(self):
         return self.rank.__str__() + self.suit.__str__()
 
-'''
-Suit identification (iden)
-0: clubs
-1: diamonds
-2: spades
-3: hearts
 
-The suit that leads is trump, aces are high
-'''
+'''Suit identification (iden)'''
+'''0: clubs'''
+''''1: diamonds'''
+'''2: spades'''
+''''3: hearts'''
+'''The suit that leads is trump, aces are high'''
 
 class Suit:
     def __init__(self, iden):
@@ -75,10 +73,8 @@ class Suit:
 
 
 
-'''
-Ranks indicated by numbers 2-14, 2-Ace
-Where ace is high and two is low
-'''
+"""Ranks indicated by numbers 2-14, 2-Ace"""
+"""Where ace is high and two is low"""
 class Rank:
     def __init__(self, rank):
         self.rank = rank

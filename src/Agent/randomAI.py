@@ -30,7 +30,7 @@ class RandomAI:
             return {
                     "event_name" : "PassCards_Action",
                     "data" : {
-                        'playerName': self.name, 
+                        'playerName': self.name,
                         'action': {'passCards': passCards}
                     }
                 }
@@ -42,7 +42,7 @@ class RandomAI:
         elif observation['event_name'] == 'PlayTrick':
             if self.print_info:
                 print(observation)
-            
+
             hand = observation['data']['hand']
             if '2c' in hand:
                 choose_card = '2c'
@@ -54,10 +54,10 @@ class RandomAI:
             return {
                     "event_name" : "PlayTrick_Action",
                     "data" : {
-                        'playerName': self.name, 
+                        'playerName': self.name,
                         'action': {'card': choose_card}
                     }
-                }            
+                }
         elif observation['event_name'] == 'ShowTrickAction':
             if self.print_info:
                 print(observation)

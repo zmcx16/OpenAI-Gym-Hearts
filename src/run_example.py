@@ -32,7 +32,7 @@ for i_episode in range(NUM_EPISODES):
     
     observation = env.reset()
     
-    while True:    
+    while True:
         env.render()
         
         now_event = observation['event_name']
@@ -45,9 +45,9 @@ for i_episode in range(NUM_EPISODES):
             playName = observation['data']['playerName']
             for agent in agent_list:
                 if agent.name == playName:
-                    action = agent.Do_Action(observation)    
-           
-        observation, reward, done, info = env.step(action) 
+                    action = agent.Do_Action(observation)
+
+        observation, reward, done, info = env.step(action)
 
         if reward != None:
             print('\nreward: {0}\n'.format(reward))

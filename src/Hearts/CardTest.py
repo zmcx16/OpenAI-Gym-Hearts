@@ -1,10 +1,8 @@
 from .Card import Card
 
-'''
-Tests different cards for (in)equality using a
-unit test like format. Shows correctness of the operators,
-which compare cards relative to each others' ranks.
-'''
+"""Tests different cards for (in)equality using a"""
+"""unit test like format. Shows correctness of the operators,"""
+"""which compare cards relative to each others' ranks."""
 
 print('Starting Card opertor tests...\n')
 

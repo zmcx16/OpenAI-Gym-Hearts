@@ -1,5 +1,5 @@
 from random import randint
-from .Card import Card, Suit
+from .Card import Suit
 
 clubs = 0
 diamonds = 1
@@ -43,7 +43,7 @@ class Hand:
                 suit.sort()
 
     def updateHand(self):
-        self.hand = [self.clubs, self.diamonds, 
+        self.hand = [self.clubs, self.diamonds,
                     self.spades, self.hearts]
 
     def getRandomCard(self):
@@ -51,13 +51,13 @@ class Hand:
         suit = self.hand[suit]
         while len(suit) == 0:
             suit = randint(0,3)
-            suit = self.hand[suit] 
+            suit = self.hand[suit]
         index = randint(0, len(suit)-1)
 
         return suit[index]
 
 
-
+    @classmethod
     def strToCard(self, card):
         if len(card) == 0: return None
         
@@ -65,8 +65,9 @@ class Hand:
         
         try:
             suitIden = suits.index(suit)
-        except:
+        except Exception as e:
             print ('Invalid suit')
+            print(e)
             return None
 
         cardRank = card[0:len(card)-1] # get rank from string
@@ -90,8 +91,9 @@ class Hand:
         else:
             try:
                 cardRank = int(cardRank)
-            except:
+            except Exception as e:
                 print ("Invalid card rank.")
+                print(e)
                 return None
 
         return cardRank, suitIden
@@ -116,7 +118,7 @@ class Hand:
             return None
         else:
             cardRank, suitIden = cardInfo[0], cardInfo[1]
-        
+
         # see if player has that card in hand
         return self.containsCard(cardRank, suitIden)
 
