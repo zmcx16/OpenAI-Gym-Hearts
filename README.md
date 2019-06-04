@@ -1,4 +1,6 @@
 # OpenAI Gym Hearts Card Game
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c9f75c47c14e4ce2a764cbb11508b58d)](https://www.codacy.com/app/zmcx16/OpenAI-Gym-Hearts?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=zmcx16/OpenAI-Gym-Hearts&amp;utm_campaign=Badge_Grade)
+
 * Implement an OpenAI Gym Hearts Card Game simulation environment, easy to collect game data to use it in Machine Learning and Reinforcement Learning, the main game logic is fork from https://github.com/danielcorin/Hearts.
 
 # Requirement
